@@ -3,33 +3,52 @@ import React from 'react';
 import './App.css';
 import UserContext from './AppContext.js';
 import AppHeader from './AppHeader.js';
-import AppLogin from './AppLogin.js';
+import AppFooter from './AppFooter.js';
+import AppMenu from './AppMenu.js';
+import AppBody from './AppBody.js';
 
-
-
+const LEFT_PAGE = '<<<';
+const RIGHT_PAGE = '>>>';
 class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.updateUser = (username, jwt) => {
             this.setState(state => ({
-                username: username,
-                jwt: jwt
+                username:   username,
+                jwt:        jwt
             }));
         };
 
+        this.updateApiCaller = (apiCaller) => {
+            this.setState(state => ({
+                apiCaller: apiCaller
+            }));
+        }
+
+        this.updateAppContent = (appContent) => {
+            this.setState(state => ({
+                appContent: appContent
+            }));
+        }
+
         this.state = {
-            username: null,
-            updateUser: this.updateUser
+            updateUser:         this.updateUser,
+            updateApiCaller:    this.updateApiCaller,
+            updateAppContent:   this.updateAppContent
         };
     }
 
+
+
     render() {
+
         return (
             <div className="App">
-                <AppHeader/>
                 <UserContext.Provider value={this.state}>
-                    <AppLogin jwt={this.state.jwt}/>
+                    <AppHeader/>
+                    <AppBody/>
+                    <AppFooter/>
                 </UserContext.Provider>
             </div>
         );
