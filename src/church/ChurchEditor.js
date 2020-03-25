@@ -20,6 +20,7 @@ class ChurchEditor extends React.Component {
 
         this.active = React.createRef();
         this.name   = React.createRef();
+        this.clear  = React.createRef();
 
         this.handleClear    = this.handleClear.bind(this);
         this.handleSubmit   = this.handleSubmit.bind(this);
@@ -45,29 +46,49 @@ class ChurchEditor extends React.Component {
     }
 
     handleSubmit(event) {
+        let url     = "/api/church";
+        let payload = {
+            "active": this.active.current.checked,
+            "name": this.name.current.value
+        };
+        let config = {
+            headers: {
+                'Authorization': 'Bearer ' + this.context.jwt,
+                'Content-Type': 'application/json'
+            }
+        }
+
         event.preventDefault();
-        axios
-			.post("/api/church", {
-    			"active": this.active.current.checked,
-    			"name": this.name.current.value
-			}, {
-                headers: {
-                    'Authorization': 'Bearer ' + this.context.jwt,
-                    'Content-Type': 'application/json'
-                },
-            })
-			.then(this.handleResponse)
-			.catch(function(error) {
-					alert("Error: " + error);
-			})
-			.then(function() {
-			});
+
+        if (this.props.churchContext.selection == null) {
+            axios
+        	    .post(url, payload, config)
+        		.then(this.handleResponse)
+        		.catch(function(error) {
+        			alert("Error: " + error);
+        		})
+        		.then(function() {
+        		});
+        }
+        else {
+            payload.id = this.props.churchContext.selected.id;
+            url = url + "/" + payload.id;
+
+            axios
+          	    .put(url, payload, config)
+          		.then(this.handleResponse)
+                .catch(function(error) {
+                	alert("Error: " + error);
+          		})
+           		.then(function() {
+          		});
+        }
     }
 
 
     handleResponse(response) {
         if (response.status === 200) {
-    	    alert("Response: " + JSON.stringify(response.data));
+            this.clear.current.click();
     	}
     	else {
     	    alert("Not Success: " + JSON.stringify(response));
@@ -103,7 +124,7 @@ class ChurchEditor extends React.Component {
 
                         <div>
                             <input className="login-button" type="submit" value="Save" />
-                            <button className="login-button" type="reset" onClick={this.handleClear} >Clear</button>
+                            <button className="login-button" type="reset" onClick={this.handleClear} ref={this.clear} >Clear</button>
                         </div>
                     </form>
                 </div>

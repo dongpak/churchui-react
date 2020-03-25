@@ -24,43 +24,64 @@ class ManageChurch extends React.Component {
     constructor(props) {
         super(props);
 
+        this.loadPage       = this.loadPage.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
 
 
         this.updateSelection = (index, selected) => {
             this.setState(state => ({
                 selection:  index,
-                selected:   selected
+                selected:   selected,
+                refresh:    true
             }));
+        }
+
+        this.refreshTable = () => {
+            this.setState(state => ({
+                refresh: true
+            }))
         }
 
         this.state = {
             page:       null,
             selection:  null,
             selected:   {},
+            refresh:    false,
 
-            updateSelection: this.updateSelection
+            updateSelection:    this.updateSelection
         }
     }
 
     componentDidMount() {
-        axios
-            .get("/api/church?active=true", {
-                headers: {'Authorization': 'Bearer ' + this.context.jwt},
-    		})
-    		.then(this.handleResponse)
-    		.catch(function(error) {
-    			alert("Error: " + error);
-    		})
-    		.then(function() {
-    		});
+        this.loadPage();
    	}
+
+    componentDidUpdate () {
+        if (this.state.refresh == true) {
+            this.loadPage();
+        }
+    }
+
+    loadPage() {
+        axios
+            .get("/api/church", {
+                    headers: {'Authorization': 'Bearer ' + this.context.jwt},
+        		})
+        		.then(this.handleResponse)
+        		.catch(function(error) {
+        			alert("Error: " + error);
+        		})
+        		.then(function() {
+        		});
+    }
+
 
     handleResponse(response) {
         if (response.status == 200) {
             //alert(JSON.stringify(response.data));
             this.setState(state => ({
-                page: response.data
+                page: response.data,
+                refresh: false
             }));
         }
         else {
@@ -79,7 +100,6 @@ class ManageChurch extends React.Component {
 
 
     render() {
-
         return (
             <ChurchContext.Provider value={this.state}>
                 <div class="Church-content">
