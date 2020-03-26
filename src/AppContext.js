@@ -1,6 +1,6 @@
 import React from 'react';
 
-const UserContext = React.createContext({
+const AppContext = React.createContext({
     username:           null,
     jwt:                null,
     updateUser:         (username, jwt) => {},
@@ -12,4 +12,4 @@ const UserContext = React.createContext({
     updateAppContent:   (appContent) => {}
 });
 
-export default UserContext;
+export default AppContext;

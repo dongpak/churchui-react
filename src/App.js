@@ -1,7 +1,7 @@
 import React from 'react';
 //import logo from './logo.svg';
 import './App.css';
-import UserContext from './AppContext.js';
+import AppContext from './AppContext.js';
 import AppHeader from './AppHeader.js';
 import AppFooter from './AppFooter.js';
 import AppMenu from './AppMenu.js';
@@ -45,11 +45,11 @@ class App extends React.Component {
 
         return (
             <div className="App">
-                <UserContext.Provider value={this.state}>
+                <AppContext.Provider value={this.state}>
                     <AppHeader/>
                     <AppBody/>
                     <AppFooter/>
-                </UserContext.Provider>
+                </AppContext.Provider>
             </div>
         );
     }

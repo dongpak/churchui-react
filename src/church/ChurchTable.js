@@ -1,8 +1,13 @@
-import React from 'react';
-//import logo from './logo.svg';
+import React, { useContext } from 'react';
+//import logo rom './logo.svg';
 import '../App.css';
-import UserContext from '../AppContext.js';
-import ChurchContext from './ChurchContext.js';
+import AppContext from '../AppContext.js';
+import useChurchContext, {ChurchContext} from './ChurchContext.js';
+
+
+
+const axios     = require('axios').default;
+const columns   = ["*", "id", "active", "name"];
 
 
 
@@ -14,42 +19,92 @@ class ChurchTable extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getHeaders         = this.getHeaders.bind(this);
-        this.getRowsData        = this.getRowsData.bind(this);
-        this.getKeys            = this.getKeys.bind(this);
+        this.loadPage           = this.loadPage.bind(this);
+        this.handleResponse     = this.handleResponse.bind(this);
         this.handleSelection    = this.handleSelection.bind(this);
+
+        this.state = {
+            size: 20,
+            filter: {},
+            data: null,
+            selection: null,
+            selected: {},
+            refresh: false
+        }
+
+        //alert("ChurchTable: constructor: " + JSON.stringify(this.state));
     }
 
-    getKeys() {
-        return ["*", "id", "active", "name"];
+    componentDidMount() {
+        this.loadPage(this.props.pagectx);
+   	}
+
+    componentDidUpdate () {
+        if (this.context.refresh === true) {
+            this.loadPage(this.props.pagectx);
+        }
+        else
+        if (this.state.page != this.props.pagectx.currentPage) {
+            this.loadPage(this.props.pagectx);
+        }
     }
 
-    getHeaders() {
-        return this.getKeys().map((key, index)=>{
-            return <th key={key}>{key.toUpperCase()}</th>
+    loadPage(pagectx) {
+        if (pagectx != null) {
+            this.setState(state => ({
+                page: pagectx.currentPage
+            }));
+        }
+
+        const page = pagectx === null ? 0 : pagectx.currentPage;
+        const size = this.state.size;
+
+        //alert("ChurchTable: loadPage: " + page);
+        axios
+            .get("/api/church?page="+page+"&size="+size, {
+                headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
+            })
+            .then(this.handleResponse)
+            .catch(function(error) {
+              	alert("Error: " + error);
+            })
+            .then(function() {
+            });
+    }
+
+    handleResponse(response) {
+       // alert("ChurchTable: handleResponse: " + JSON.stringify(response));
+        if (response.status === 200) {
+            this.setState(state => ({
+                data: response.data,
+                refresh: false
+            }),
+            () => {
+                this.context.datasourceClear();
+            });
+        }
+        else {
+        	alert("Not Success: " + JSON.stringify(response));
+        }
+    }
+
+    handleSelection(ctx, index, row) {
+        // alert("Selected");
+        this.setState((state, props) => ({
+            selection: index,
+            selected: row,
+        }),
+        () => {
+            ctx.updateSelection(index, row);
         });
-    }
-
-    getRowsData() {
-        var items   = this.props.page.content;
-        var keys    = this.getKeys();
-        return items.map((row, index) => {
-            return (
-                <tr className={index === this.context.selection ? "selected" : "not-selected"} onClick={() => this.handleSelection(index, row)}>
-                    <RenderRow key={index} data={row} keys={keys} />
-                </tr>
-            );
-        });
-    }
-
-    handleSelection(index, row) {
-        this.context.updateSelection(index, row);
     }
 
     render() {
-        if (this.props.page == null) {
+        //alert("ChurchTable: render");
+        if (this.state.data == null) {
+            //alert("ChurchTable: empty table");
             return (
-                <div>
+                <div className="table">
                     <table>
                         <thead/>
                         <tbody/>
@@ -58,14 +113,15 @@ class ChurchTable extends React.Component {
             )
         }
 
+        //alert("ChurchTable: rows of table");
         return (
             <div className="table">
                 <table>
                     <thead>
-                        {this.getHeaders()}
+                        <RenderHeaders />
                     </thead>
                     <tbody>
-                        {this.getRowsData()}
+                        <RenderRows items={this.state.data.content} onClick={this.handleSelection}/>
                     </tbody>
                 </table>
             </div>
@@ -73,14 +129,33 @@ class ChurchTable extends React.Component {
     }
 }
 
+function RenderHeaders(props) {
+    return columns.map((column, index)=>{
+        return <th>{column.toUpperCase()}</th>
+    });
+}
 
-function RenderRow(props) {
-    return props.keys.map((key, index) => {
-        if (index == 0) {
+function RenderRows(props) {
+    const   ctx     = useChurchContext();
+    const   items   = props.items;
+
+    return items.map((row, index) => {
+        return (
+            <tr className={index === ctx.selection ? "selected" : "not-selected"} onClick={() => props.onClick(ctx, index, row)}>
+                <RenderARow key={index} data={row} />
+            </tr>
+        );
+    });
+}
+
+function RenderARow(props) {
+    //alert("RenderRow");
+    return columns.map((column, index) => {
+        if (index === 0) {
             return <td> ACTION </td>
         }
         else {
-            return <td key={props.data[key]}>{props.data[key]}</td>
+            return <td>{props.data[column]}</td>
         }
     });
 }

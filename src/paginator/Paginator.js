@@ -1,10 +1,8 @@
 import React from 'react';
-//import logo from './logo.svg';
-import './App.css';
-import UserContext from './AppContext.js';
+import '../App.css';
+import usePaginatorContext, { PaginatorContext } from './PaginatorContext.js';
 
 
-const axios     = require('axios').default;
 const LEFT_PAGE = '<<<';
 const RIGHT_PAGE = '>>>';
 
@@ -13,18 +11,17 @@ const RIGHT_PAGE = '>>>';
 
 class Paginator extends React.Component {
 
-    static contextType = UserContext;
+    static contextType = PaginatorContext;
 
     constructor(props) {
         super(props);
 
-        this.state = {
-            page: props.page
-        }
+        this.numberRange        = this.numberRange.bind(this);
+        this.computePagination  = this.computePagination.bind(this);
+        this.getCurrentPage     = this.getCurrentPage.bind(this);
+        this.getTotalPages      = this.getTotalPages.bind(this);
 
-        //this.handleResponse = this.handleResponse.bind(this);
-
-        //alert("Paginator");
+        //alert("Paginator: constructor");
     }
 
 
@@ -53,30 +50,68 @@ class Paginator extends React.Component {
     }
 
     handleMoveRight() {
+        const pageNumber    = this.getCurrentPage();
+        const totalPages    = this.getTotalPages();
+
+        if (pageNumber < totalPages) {
+            this.context.updateSelection(totalPages, pageNumber + 1);
+        }
     }
 
     handleMoveLeft() {
+        const pageNumber    = this.getCurrentPage();
+        const totalPages    = this.getTotalPages();
+
+        if (pageNumber > 1) {
+            this.context.updateSelection(totalPages, pageNumber - 1);
+        }
     }
 
-    handleClick() {
+    handleClick(page) {
+        const pageNumber    = this.getCurrentPage();
+        const totalPages    = this.getTotalPages();
+
+        if (pageNumber != (page - 1)) {
+            this.context.updateSelection(totalPages, (page-1));
+        }
     }
 
+    getCurrentPage() {
+        if (this.context.currentPage === null) {
+            return 0;
+        }
+
+        return this.context.currentPage;
+    }
+
+    getTotalPages() {
+        if (this.context.totalPages === null) {
+            return 10;
+        }
+
+        if (this.context.totalPages < 10) {
+            return 10;
+        }
+
+        return this.context.totalPages;
+    }
 
     render() {
 
-        const pageNumber    = this.state.page == null ? 0 : this.state.page.pageNumber;
-        const totalPages    = this.state.page == null ? 10 : this.state.page.totalPages == 0 ? 10 : this.state.page.totalPages;
+        const pageNumber    = this.getCurrentPage();
+        const totalPages    = this.getTotalPages();
         const pagination    = this.computePagination(pageNumber, totalPages);
 
+        //alert("Paginator: render: page=" + pageNumber);
         return (
             <div className="paginator">
-            <ul class="pagination">
-            {
+                <ul class="pagination">
+                {
                     pagination.map((page, index) => {
                         if (page === LEFT_PAGE) {
                             return (
                             <li key={index} className="page-item">
-                                <a className="page-link" aria-label="Previous" onClick={this.handleMoveLeft}>
+                                <a className="page-link" aria-label="Previous" onClick={this.handleMoveLeft.bind(this)}>
                                     <span aria-hidden="true">&laquo;</span>
                                     <span className="sr-only">Previous</span>
                                 </a>
@@ -87,7 +122,7 @@ class Paginator extends React.Component {
                         if (page === RIGHT_PAGE) {
                             return (
                             <li key={index} className="page-item">
-                                <a className="page-link" aria-label="Next" onClick={this.handleMoveRight}>
+                                <a className="page-link" aria-label="Next" onClick={this.handleMoveRight.bind(this)}>
                                     <span aria-hidden="true">&raquo;</span>
                                     <span className="sr-only">Next</span>
                                 </a>
@@ -97,12 +132,12 @@ class Paginator extends React.Component {
 
                         return (
                             <li key={index} className={`page-item${ pageNumber+1 === page ? ' active' : ''}`}>
-                                <a className="page-link" href="#" onClick={ this.handleClick(page) }>{ page }</a>
+                                <a className="page-link" href="#" onClick={ this.handleClick.bind(this, page) }>{ page }</a>
                             </li>
                         );
                     })
-            }
-            </ul>
+                }
+                </ul>
             </div>
         );
     }

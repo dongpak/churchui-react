@@ -1,13 +1,13 @@
 import React from 'react';
 import './App.css';
-import UserContext from './AppContext.js'
+import AppContext from './AppContext.js'
 
 const axios     = require('axios').default;
 
 
 class AppLogin extends React.Component {
 
-    static contextType = UserContext;
+    static contextType = AppContext;
 
     constructor(props) {
         super(props);
@@ -18,8 +18,8 @@ class AppLogin extends React.Component {
         this.handleResponse = this.handleResponse.bind(this);
 
         this.state = {
-            username: null,
-            password: null
+            username: "admin",
+            password: "superadmin"
         }
     }
 

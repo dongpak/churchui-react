@@ -1,8 +1,8 @@
 import React from 'react';
 //import logo from './logo.svg';
 import '../App.css';
-import UserContext from '../AppContext.js';
-import ChurchContext from './ChurchContext.js';
+import AppContext from '../AppContext.js';
+import {ChurchContext} from './ChurchContext.js';
 
 
 
@@ -12,7 +12,7 @@ const axios     = require('axios').default;
 
 class ChurchEditor extends React.Component {
 
-    static contextType = UserContext;
+    static contextType = ChurchContext;
 
 
     constructor(props) {
@@ -22,14 +22,13 @@ class ChurchEditor extends React.Component {
         this.name   = React.createRef();
         this.clear  = React.createRef();
 
-        this.handleClear    = this.handleClear.bind(this);
-        this.handleSubmit   = this.handleSubmit.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
-        //alert("ChurchEditor constructor");
+
+        // alert("ChurchEditor: constructor: " +  JSON.stringify(this.props));
     }
 
     componentDidUpdate () {
-        const selected = this.props.churchContext.selected;
+        const selected = this.context.selected;
 
         if (selected != null) {
             if (selected.active != null) {
@@ -42,10 +41,34 @@ class ChurchEditor extends React.Component {
     }
 
     handleClear(event) {
-        this.props.churchContext.updateSelection(null, {});
+        this.context.removeSelection();
     }
 
-    handleSubmit(event) {
+    handleDelete(appctx, event) {
+        let url     = "/api/church";
+        let config = {
+            headers: {
+                'Authorization': 'Bearer ' + appctx.jwt,
+            }
+        }
+
+        if (this.context.selection != null) {
+            url = url + "/" + this.context.selected.id;
+
+            axios
+                .delete(url, config)
+                .then(this.handleResponse)
+                .catch(function(error) {
+                	alert("Error: " + error);
+                })
+                .then(function() {
+                });
+        }
+    }
+
+    handleSubmit(appctx, event) {
+        event.preventDefault();
+
         let url     = "/api/church";
         let payload = {
             "active": this.active.current.checked,
@@ -53,14 +76,12 @@ class ChurchEditor extends React.Component {
         };
         let config = {
             headers: {
-                'Authorization': 'Bearer ' + this.context.jwt,
+                'Authorization': 'Bearer ' + appctx.jwt,
                 'Content-Type': 'application/json'
             }
         }
 
-        event.preventDefault();
-
-        if (this.props.churchContext.selection == null) {
+        if (this.context.selection == null) {
             axios
         	    .post(url, payload, config)
         		.then(this.handleResponse)
@@ -71,7 +92,7 @@ class ChurchEditor extends React.Component {
         		});
         }
         else {
-            payload.id = this.props.churchContext.selected.id;
+            payload.id = this.context.selected.id;
             url = url + "/" + payload.id;
 
             axios
@@ -85,9 +106,9 @@ class ChurchEditor extends React.Component {
         }
     }
 
-
     handleResponse(response) {
         if (response.status === 200) {
+            this.context.datasourceUpdated();
             this.clear.current.click();
     	}
     	else {
@@ -96,43 +117,48 @@ class ChurchEditor extends React.Component {
     }
 
     render() {
+        const ctx = this.context;
+
         return (
-            <ChurchContext.Consumer>
-            {context =>
+            <AppContext.Consumer>
+            {
+                appctx =>
                 <div className="editor">
-                    <form className="editor-form" onSubmit={this.handleSubmit}>
+                    <form className="editor-form" onSubmit={this.handleSubmit.bind(this, appctx)}>
                         <label for="active"> Active </label>
                         <input id="active" type="checkbox" name="active" ref={this.active} />
 
                         <label for="id"> Id </label>
-                        <input id="id" readonly="readonly" type="text" name="id" value={context.selected.id} />
+                        <input id="id" readonly="readonly" type="text" name="id" value={ctx.selected.id} />
 
                         <label for="name" className="keep-together"> Church Name* </label>
                         <input id="name" required="true" type="text" name="name" ref={this.name} />
 
                         <label for="createdby"> Created By </label>
-                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={context.selected.createdBy} />
+                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
 
                         <label for="createddate"> Created Date </label>
-                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={context.selected.createdDate} />
+                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
 
                         <label for="updatedby"> Updated By </label>
-                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={context.selected.updatedBy} />
+                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
 
                         <label for="updateddate"> Updated Date </label>
-                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={context.selected.updatedDate}/>
+                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
 
                         <div>
                             <input className="login-button" type="submit" value="Save" />
-                            <button className="login-button" type="reset" onClick={this.handleClear} ref={this.clear} >Clear</button>
+                            <button className="login-button" type="reset" onClick={this.handleClear.bind(this)} ref={this.clear} >Clear</button>
+                            <button className="login-button" type="reset" onClick={this.handleDelete.bind(this, appctx)} >Delete</button>
                         </div>
                     </form>
                 </div>
             }
-            </ChurchContext.Consumer>
+            </AppContext.Consumer>
         );
     }
 }
+
 
 
 export default ChurchEditor;

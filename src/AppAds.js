@@ -1,7 +1,7 @@
 import React from 'react';
 //import logo from './logo.svg';
 import './App.css';
-import UserContext from './AppContext.js';
+import AppContext from './AppContext.js';
 
 
 

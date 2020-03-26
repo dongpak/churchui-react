@@ -1,7 +1,7 @@
 import React from 'react';
 //import logo from './logo.svg';
 import './App.css';
-import UserContext from './AppContext.js';
+import AppContext from './AppContext.js';
 import AppLogin from './AppLogin.js';
 
 const axios     = require('axios').default;
@@ -9,7 +9,7 @@ const axios     = require('axios').default;
 
 class AppMenu extends React.Component {
 
-    static contextType = UserContext;
+    static contextType = AppContext;
 
     render() {
         return (
@@ -31,7 +31,7 @@ function LoginOrMenu(props) {
 
 class CallerBasedMenu extends React.Component {
 
-    static contextType = UserContext;
+    static contextType = AppContext;
 
 
     constructor(props) {
@@ -111,7 +111,7 @@ function MenuItem(props) {
 
 
 class ActiveMenu extends React.Component {
-    static contextType = UserContext;
+    static contextType = AppContext;
 
     constructor(props) {
         super(props);
