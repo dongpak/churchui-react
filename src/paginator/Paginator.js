@@ -1,6 +1,6 @@
 import React from 'react';
 import '../App.css';
-import usePaginatorContext, { PaginatorContext } from './PaginatorContext.js';
+import { PaginatorContext } from './PaginatorContext.js';
 
 
 const LEFT_PAGE = '<<<';
@@ -71,7 +71,7 @@ class Paginator extends React.Component {
         const pageNumber    = this.getCurrentPage();
         const totalPages    = this.getTotalPages();
 
-        if (pageNumber != (page - 1)) {
+        if (pageNumber !== (page - 1)) {
             this.context.updateSelection(totalPages, (page-1));
         }
     }
@@ -111,7 +111,7 @@ class Paginator extends React.Component {
                         if (page === LEFT_PAGE) {
                             return (
                             <li key={index} className="page-item">
-                                <a className="page-link" aria-label="Previous" onClick={this.handleMoveLeft.bind(this)}>
+                                <a href="#" className="page-link" aria-label="Previous" onClick={this.handleMoveLeft.bind(this)}>
                                     <span aria-hidden="true">&laquo;</span>
                                     <span className="sr-only">Previous</span>
                                 </a>
@@ -122,7 +122,7 @@ class Paginator extends React.Component {
                         if (page === RIGHT_PAGE) {
                             return (
                             <li key={index} className="page-item">
-                                <a className="page-link" aria-label="Next" onClick={this.handleMoveRight.bind(this)}>
+                                <a href="#" className="page-link" aria-label="Next" onClick={this.handleMoveRight.bind(this)}>
                                     <span aria-hidden="true">&raquo;</span>
                                     <span className="sr-only">Next</span>
                                 </a>
@@ -132,7 +132,7 @@ class Paginator extends React.Component {
 
                         return (
                             <li key={index} className={`page-item${ pageNumber+1 === page ? ' active' : ''}`}>
-                                <a className="page-link" href="#" onClick={ this.handleClick.bind(this, page) }>{ page }</a>
+                                <a href="#" className="page-link" href="#" onClick={ this.handleClick.bind(this, page) }>{ page }</a>
                             </li>
                         );
                     })

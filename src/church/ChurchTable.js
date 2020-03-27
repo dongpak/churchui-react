@@ -1,7 +1,6 @@
-import React, { useContext } from 'react';
+import React from 'react';
 //import logo rom './logo.svg';
 import '../App.css';
-import AppContext from '../AppContext.js';
 import useChurchContext, {ChurchContext} from './ChurchContext.js';
 
 
@@ -40,17 +39,27 @@ class ChurchTable extends React.Component {
    	}
 
     componentDidUpdate () {
+        //alert("ChurchTable: componentDidUpdate: context.refresh=" + this.context.refresh + "/state.refresh=" + this.state.refresh);
+
         if (this.context.refresh === true) {
-            this.loadPage(this.props.pagectx);
+            if (this.state.refresh === false) {
+                // set refresh in progress
+                this.setState({
+                    refresh: true
+                });
+                this.loadPage(this.props.pagectx);
+            }
         }
-        else
-        if (this.state.page != this.props.pagectx.currentPage) {
-            this.loadPage(this.props.pagectx);
+        else if (this.state.refresh === true) {
+            // set refresh completed
+            this.setState({
+                refresh: false
+            });
         }
     }
 
     loadPage(pagectx) {
-        if (pagectx != null) {
+        if (pagectx !== null) {
             this.setState(state => ({
                 page: pagectx.currentPage
             }));
@@ -75,13 +84,10 @@ class ChurchTable extends React.Component {
     handleResponse(response) {
        // alert("ChurchTable: handleResponse: " + JSON.stringify(response));
         if (response.status === 200) {
-            this.setState(state => ({
+            this.setState({
                 data: response.data,
-                refresh: false
-            }),
-            () => {
-                this.context.datasourceClear();
             });
+            this.context.datasourceClear();
         }
         else {
         	alert("Not Success: " + JSON.stringify(response));
@@ -131,7 +137,7 @@ class ChurchTable extends React.Component {
 
 function RenderHeaders(props) {
     return columns.map((column, index)=>{
-        return <th>{column.toUpperCase()}</th>
+        return <th key={column}>{column.toUpperCase()}</th>
     });
 }
 
@@ -152,10 +158,10 @@ function RenderARow(props) {
     //alert("RenderRow");
     return columns.map((column, index) => {
         if (index === 0) {
-            return <td> ACTION </td>
+            return <td key={index}> ACTION </td>
         }
         else {
-            return <td>{props.data[column]}</td>
+            return <td key={index}>{props.data[column]}</td>
         }
     });
 }

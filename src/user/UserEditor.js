@@ -2,7 +2,9 @@ import React from 'react';
 //import logo from './logo.svg';
 import '../App.css';
 import AppContext from '../AppContext.js';
-import UserContext from './UserContext.js';
+import SearchChurchModal from '../church/SearchChurchModal.js';
+
+import { UserContext } from './UserContext.js';
 import UserRoles from './UserRoles.js';
 
 
@@ -13,7 +15,7 @@ const axios     = require('axios').default;
 
 class UserEditor extends React.Component {
 
-    static contextType = AppContext;
+    static contextType = UserContext;
 
 
     constructor(props) {
@@ -22,23 +24,22 @@ class UserEditor extends React.Component {
         this.active     = React.createRef();
         this.name       = React.createRef();
         this.token      = React.createRef();
+        this.roles      = React.createRef();
         this.church     = React.createRef();
         this.churchId   = React.createRef();
         this.clear      = React.createRef();
 
-        this.handleClear    = this.handleClear.bind(this);
-        this.handleSubmit   = this.handleSubmit.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
 
         this.state = {
-            searchChurch: false,
-            churchPage: null
-        };
+            searchChurch: false
+        }
+
         //alert("ChurchEditor constructor");
     }
 
     componentDidUpdate () {
-        const selected = this.props.userContext.selected;
+        const selected = this.context.selected;
 
         if (selected != null) {
             if (selected.active != null) {
@@ -51,37 +52,88 @@ class UserEditor extends React.Component {
                 this.token.current.value = selected.token;
             }
             if (selected.churchId != null) {
-                this.church.current.value = selected.churchId;
+                this.churchId.current.value = selected.churchId;
             }
         }
+
+        alert("UserEditor: componentDidUpdate");
     }
 
-    searchChurchHandler(event) {
-        this.setState(state => ({
+    openSearchChurchModal(event) {
+        this.setState({
             searchChurch: true
-        }));
+        });
+    }
+
+    closeSearchChurchModal(churchctx, event) {
+        const selection = churchctx.selection;
+        const selected  = churchctx.selected;
+
+        if (selection != null) {
+            if (selected.id != null) {
+                this.churchId.current.value = selected.id;
+            }
+            if (selected.name != null) {
+                this.church.current.value = selected.name;
+            }
+        }
+
+        this.setState({
+            searchChurch: false
+        });
+
+
     }
 
     handleClear(event) {
-        this.props.userContext.updateSelection(null, {});
+        this.context.removeSelection();
     }
 
-    handleSubmit(event) {
+    handleDelete(appctx, event) {
         let url     = "/api/user";
+        let config = {
+            headers: {
+                'Authorization': 'Bearer ' + appctx.jwt,
+            }
+        }
+
+        if (this.context.selection != null) {
+            url = url + "/" + this.context.selected.id;
+
+            axios
+                .delete(url, config)
+                .then(this.handleResponse)
+                .catch(function(error) {
+                	alert("Error: " + error);
+                })
+                .then(function() {
+                });
+        }
+    }
+
+
+    handleSubmit(appctx, event) {
+        event.preventDefault();
+
+        let url     = "/api/user";
+        let roles   = Array.from(this.roles.current)
+                                .filter(option => option.selected)
+                                .map(option => option.value);
         let payload = {
             "active": this.active.current.checked,
-            "name": this.name.current.value
+            "name": this.name.current.value,
+            "token": this.token.current.value,
+            "roles": roles.join(),
+            "churchId": this.churchId.current.value,
         };
         let config = {
             headers: {
-                'Authorization': 'Bearer ' + this.context.jwt,
+                'Authorization': 'Bearer ' + appctx.jwt,
                 'Content-Type': 'application/json'
             }
         }
 
-        event.preventDefault();
-
-        if (this.props.churchContext.selection == null) {
+        if (this.context.selection == null) {
             axios
         	    .post(url, payload, config)
         		.then(this.handleResponse)
@@ -92,8 +144,8 @@ class UserEditor extends React.Component {
         		});
         }
         else {
-            payload.id = this.props.churchContext.selected.name;
-            url = url + "/" + payload.name;
+            payload.id = this.context.selected.id;
+            url = url + "/" + payload.id;
 
             axios
           	    .put(url, payload, config)
@@ -108,28 +160,27 @@ class UserEditor extends React.Component {
 
 
     handleResponse(response) {
-        if (response.status === 200) {
-            this.clear.current.click();
-    	}
-    	else {
-    	    alert("Not Success: " + JSON.stringify(response));
-    	}
+         if (response.status === 200) {
+             this.context.datasourceUpdated();
+             this.clear.current.click();
+     	}
+     	else {
+     	    alert("Not Success: " + JSON.stringify(response));
+     	}
     }
- /**
-                    <ChurchContext.Provider value={this.state}>
-                        <div className={modelState}>
-                            <ChurchTable page={this.state.churchPage}/>
-                        </div>
-                    </ChurchContext.Provider>
-                **/
+
+
     render() {
-        const modalState = this.state.searchChurch ? "modal modal-on" : "modal modal-off";
+        const ctx   = this.context;
+        // alert("UserEditor: render: " + this.state.searchChurch);
+
         return (
-            <UserContext.Consumer>
-            {context =>
+            <AppContext.Consumer>{
+                appctx =>
                 <div className="editor">
 
-                    <form className="editor-form" onSubmit={this.handleSubmit}>
+                    <SearchChurchModal status={this.state.searchChurch} closeHandler={this.closeSearchChurchModal.bind(this)} />
+                    <form className="editor-form" onSubmit={this.handleSubmit.bind(this, appctx)}>
                         <label for="active"> Active </label>
                         <input id="active" type="checkbox" name="active" ref={this.active} />
 
@@ -141,36 +192,39 @@ class UserEditor extends React.Component {
 
                         <label for="roles" className="keep-together"> User Roles* </label>
                         <select id="roles" multiple="true" required="true" ref={this.roles}>
-                            {UserRoles(this.context.apiCaller)}
+                            {UserRoles(appctx.apiCaller)}
                         </select>
 
                         <label for="church" className="keep-together"> User Church* </label>
-                        <input id="church" required="true" type="text" readonly="readonly" onClick={this.searchChurch} ref={this.church} />
+                        <input id="church" required="true" type="text" readonly="readonly"
+                                onClick={this.openSearchChurchModal.bind(this)} ref={this.church} />
                         <input id="churchId" type="hidden" ref={this.churchId} />
 
                         <label for="createdby"> Created By </label>
-                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={context.selected.createdBy} />
+                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
 
                         <label for="createddate"> Created Date </label>
-                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={context.selected.createdDate} />
+                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
 
                         <label for="updatedby"> Updated By </label>
-                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={context.selected.updatedBy} />
+                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
 
                         <label for="updateddate"> Updated Date </label>
-                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={context.selected.updatedDate}/>
+                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
 
                         <div>
                             <input className="login-button" type="submit" value="Save" />
-                            <button className="login-button" type="reset" onClick={this.handleClear} ref={this.clear} >Clear</button>
-                        </div>
+                            <button className="login-button" type="reset" onClick={this.handleClear.bind(this)} ref={this.clear} >Clear</button>
+                            <button className="login-button" type="reset" onClick={this.handleDelete.bind(this, appctx)} >Delete</button>
+                       </div>
                     </form>
                 </div>
             }
-            </UserContext.Consumer>
+            </AppContext.Consumer>
         );
     }
 }
+
 
 
 export default UserEditor;

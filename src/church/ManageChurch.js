@@ -6,7 +6,7 @@ import AppContext from '../AppContext.js';
 import { PaginatorContext, PaginatorContextProvider } from '../paginator/PaginatorContext.js';
 import Paginator from '../paginator/Paginator.js';
 
-import { ChurchContext, ChurchContextProvider } from './ChurchContext.js';
+import { ChurchContextProvider } from './ChurchContext.js';
 import ChurchEditor from './ChurchEditor.js';
 import ChurchTable from './ChurchTable.js';
 

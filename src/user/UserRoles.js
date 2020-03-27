@@ -10,8 +10,13 @@ const forOther      = ["NONMEMBER"];
 
 
 function UserRoles(apiCaller) {
-    const   userRoles   = apiCaller.roles;
+
+    let     userRoles   = [];
     let     roles       = forOther;
+
+    if (apiCaller !== null) {
+        userRoles = apiCaller.roles;
+    }
 
     if (userRoles.includes("SUPER")) {
         roles = forSuper;

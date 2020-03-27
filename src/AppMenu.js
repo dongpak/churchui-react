@@ -13,7 +13,7 @@ class AppMenu extends React.Component {
 
     render() {
         return (
-            <div class="App-menu">
+            <div className="App-menu">
                 <LoginOrMenu jwt={this.context.jwt}/>
             </div>
         );
@@ -21,12 +21,13 @@ class AppMenu extends React.Component {
 }
 
 function LoginOrMenu(props) {
-    if (props.jwt == null) {
+    //alert("AppMenu: LoginOrMenu: jwt=" + props.jwt);
+
+    if (props.jwt === null) {
         return <AppLogin/>
     }
-    else {
-        return <CallerBasedMenu/>
-    }
+
+    return <CallerBasedMenu/>
 }
 
 class CallerBasedMenu extends React.Component {
@@ -42,7 +43,7 @@ class CallerBasedMenu extends React.Component {
     }
 
     componentDidMount() {
-        if (this.context.apiCaller == null) {
+        if (this.context.apiCaller === null) {
             axios
     			.get("/api/auth/info", {
                     headers: {'Authorization': 'Bearer ' + this.context.jwt},
@@ -57,8 +58,7 @@ class CallerBasedMenu extends React.Component {
     }
 
     handleResponse(response) {
-        if (response.status == 200) {
-            // alert(JSON.stringify(response.data));
+        if (response.status === 200) {
             this.context.updateApiCaller(response.data);
         }
         else {
@@ -67,13 +67,15 @@ class CallerBasedMenu extends React.Component {
     }
 
     hasRoles() {
-        if (this.context.apiCaller == null) {
+        if (this.context.apiCaller === null) {
             return false;
         }
 
+        const roles = this.context.apiCaller.roles;
+
         let i = 0;
         for (i = 0; i < arguments.length; i++) {
-            if (this.context.apiCaller.roles.includes(arguments[i])) {
+            if (roles.includes(arguments[i])) {
                 return true;
             }
         }
@@ -83,7 +85,7 @@ class CallerBasedMenu extends React.Component {
 
     render() {
         return (
-            <div class="App-menu">
+            <div className="App-menu">
                 <MenuItem name="Manage Churches" activate={this.hasRoles("SUPER")} />
                 <MenuItem name="Manage Users" activate={this.hasRoles("SUPER", "ADMIN")} />
                 <MenuItem name="Manage Members" activate={this.hasRoles("SUPER", "ADMIN", "CLERK")} />
@@ -121,7 +123,7 @@ class ActiveMenu extends React.Component {
 
     handleClick(e, item) {
         e.preventDefault();
-        if (item == "Change User") {
+        if (item === "Change User") {
             this.context.updateApiCaller(null);
             this.context.updateUser(null, null);
         }

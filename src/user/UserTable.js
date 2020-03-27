@@ -1,101 +1,112 @@
 import React from 'react';
 //import logo from './logo.svg';
 import '../App.css';
-import AppContext from '../AppContext.js';
-import UserContext from './UserContext.js';
+import useUserContext, {UserContext} from './UserContext.js';
 
 
 
 const axios     = require('axios').default;
-const keys      = ["*", "active", "name", "token", "roles", "churchId"];
+const columns   = ["*", "active", "name", "token", "roles", "churchId"];
 
 
 
 class UserTable extends React.Component {
 
-    static contextType  = AppContext;
+    static contextType  = UserContext;
+
 
     constructor(props) {
         super(props);
 
-        this.getHeaders         = this.getHeaders.bind(this);
-        this.getRowsData        = this.getRowsData.bind(this);
-        this.getKeys            = this.getKeys.bind(this);
+
+        this.loadPage           = this.loadPage.bind(this);
+        this.handleResponse     = this.handleResponse.bind(this);
         this.handleSelection    = this.handleSelection.bind(this);
 
         this.state = {
-            page: props.churchContext.page == null ? 0 : props.churchContext.page,
-            size: props.churchContext.size == null ? 20 : props.churchContext.size,
-            filter: props.churchContext.filter,
+            page: 0,
+            size: 20,
+            filter: {},
             data: null,
             selection: null,
-            selected: null,
+            selected: {},
             refresh: false
         }
 
-        alert("State: " + JSON.stringify(this.state));
+        //alert("UserTable: constructor: " + JSON.stringify(this.state));
     }
 
     componentDidMount() {
-        this.loadPage();
+        this.loadPage(this.props.pagectx);
    	}
 
     componentDidUpdate () {
-        if (this.state.refresh == true) {
-            this.loadPage();
+        //alert("UserTable: componentDidUpdate: context.refresh=" + this.context.refresh + "/state.refresh=" + this.state.refresh);
+
+        if (this.context.refresh === true) {
+            if (this.state.refresh === false) {
+                // set refresh in progress
+                this.setState({
+                    refresh: true
+                });
+                this.loadPage(this.props.pagectx);
+            }
+        }
+        else if (this.state.refresh === true) {
+            // set refresh completed
+            this.setState({
+                refresh: false
+            });
         }
     }
 
-    loadPage() {
+
+    loadPage(pagectx) {
+        if (pagectx !== null) {
+            this.setState({
+                page: pagectx.currentPage
+            });
+        }
+
+        const page = pagectx === null ? 0 : pagectx.currentPage;
+        const size = this.state.size;
+
+        //alert("UserTable: loadPage: " + page);
         axios
-            .get("/api/church?page="+this.state.page+"&size="+this.state.size, {
-                headers: {'Authorization': 'Bearer ' + this.context.jwt},
-          	})
+            .get("/api/user?page="+page+"&size="+size, {
+                headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
+            })
             .then(this.handleResponse)
             .catch(function(error) {
-            	alert("Error: " + error);
+              	alert("Error: " + error);
             })
             .then(function() {
             });
     }
 
     handleResponse(response) {
-        if (response.status == 200) {
-            //alert(JSON.stringify(response.data));
-            this.setState(state => ({
+       // alert("UserTable: handleResponse: " + JSON.stringify(response));
+        if (response.status === 200) {
+            this.setState({
                 data: response.data,
-                refresh: false
-            }));
-        }
+            });
+            this.context.datasourceClear();        }
         else {
         	alert("Not Success: " + JSON.stringify(response));
         }
     }
 
-    getHeaders() {
-        return keys.map((key, index)=>{
-            return <th key={key}>{key.toUpperCase()}</th>
+    handleSelection(ctx, index, row) {
+        // alert("Selected");
+        ctx.updateSelection(index, row);
+        this.setState({
+            selection: index,
+            selected: row,
         });
-    }
-
-    getRowsData() {
-        var items   = this.state.data.content;
-
-        return items.map((row, index) => {
-            return (
-                <tr className={index === this.state.selection ? "selected" : "not-selected"} onClick={() => this.handleSelection(index, row)}>
-                    <RenderRow key={index} data={row} keys={keys} />
-                </tr>
-            );
-        });
-    }
-
-    handleSelection(index, row) {
-        this.props.churchContext.updateContext(this.state);
     }
 
     render() {
-        if (this.props.churchContext.data == null) {
+        if (this.state.data == null) {
             return (
                 <div>
                     <table>
@@ -110,10 +121,10 @@ class UserTable extends React.Component {
             <div className="table">
                 <table>
                     <thead>
-                        {this.getHeaders()}
+                        <RenderHeaders />
                     </thead>
                     <tbody>
-                        {this.getRowsData()}
+                        <RenderRows items={this.state.data.content} onClick={this.handleSelection}/>
                     </tbody>
                 </table>
             </div>
@@ -121,18 +132,36 @@ class UserTable extends React.Component {
     }
 }
 
+function RenderHeaders(props) {
+    return columns.map((column, index)=>{
+        return <th key={column}>{column.toUpperCase()}</th>
+    });
+}
 
-function RenderRow(props) {
-    var items   = this.state.data.content;
+function RenderRows(props) {
+    const   ctx     = useUserContext();
+    const   items   = props.items;
 
-    return keys.map((key, index) => {
-        if (index == 0) {
-            return <td>ACTION</td>
+    return items.map((row, index) => {
+        return (
+            <tr className={index === ctx.selection ? "selected" : "not-selected"} onClick={() => props.onClick(ctx, index, row)}>
+                <RenderARow key={index} data={row} />
+            </tr>
+        );
+    });
+}
+
+function RenderARow(props) {
+    //alert("RenderRow");
+    return columns.map((column, index) => {
+        if (index === 0) {
+            return <td key={index}> ACTION </td>
         }
         else {
-            return <td>{items[key]}</td>
+            return <td key={index}>{props.data[column]}</td>
         }
     });
 }
+
 
 export default UserTable;
