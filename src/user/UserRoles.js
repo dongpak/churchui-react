@@ -9,40 +9,50 @@ const forMember     = ["MEMBER"];
 const forOther      = ["NONMEMBER"];
 
 
-function UserRoles(apiCaller) {
+function UserRoles(apiCaller, roles) {
 
-    let     userRoles   = [];
-    let     roles       = forOther;
+    const   key = "UserRoles-option";
+
+    let     apiCallerRoles  = [];
+    let     mainRoles       = forOther;
+    let     userRoles       = [];
 
     if (apiCaller !== null) {
-        userRoles = apiCaller.roles;
+        apiCallerRoles = apiCaller.roles;
     }
 
-    if (userRoles.includes("SUPER")) {
-        roles = forSuper;
+    if (apiCallerRoles.includes("SUPER")) {
+        mainRoles = forSuper;
     }
-    else if (userRoles.includes("ADMIN")) {
-        roles = forAdmin;
+    else if (apiCallerRoles.includes("ADMIN")) {
+        mainRoles = forAdmin;
     }
-    else if (userRoles.includes("CLERK")) {
-        roles = forClerk;
+    else if (apiCallerRoles.includes("CLERK")) {
+        mainRoles = forClerk;
     }
-    else if (userRoles.includes("OFFICIAL")) {
-        roles = forOfficial;
+    else if (apiCallerRoles.includes("OFFICIAL")) {
+        mainRoles = forOfficial;
     }
-    else if (userRoles.includes("MEMBER")) {
-        roles = forMember;
+    else if (apiCallerRoles.includes("MEMBER")) {
+        mainRoles = forMember;
     }
 
-    return roles.map((role) => {
+    if (typeof roles !== "undefined") {
+        if (roles !== null) {
+            userRoles = roles.split(",");
+        }
+    }
+
+    return mainRoles.map((role) => {
+
         if (userRoles.includes(role)) {
             return (
-                <option value={role} selected>{role}</option>
+                <option key={key+role} value={role} selected>{role}</option>
             );
         }
 
         return (
-            <option value={role}>{role}</option>
+            <option key={key+role} value={role}>{role}</option>
         );
     });
 }

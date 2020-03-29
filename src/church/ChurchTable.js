@@ -106,14 +106,14 @@ class ChurchTable extends React.Component {
     }
 
     render() {
-        //alert("ChurchTable: render");
+        const   key = "ChurchTable-";
+
         if (this.state.data == null) {
-            //alert("ChurchTable: empty table");
             return (
                 <div className="table">
-                    <table>
-                        <thead/>
-                        <tbody/>
+                    <table key={key+"table"}>
+                        <thead key={key+"thread"} />
+                        <tbody key={key+"tbody"} />
                     </table>
                 </div>
             )
@@ -122,11 +122,13 @@ class ChurchTable extends React.Component {
         //alert("ChurchTable: rows of table");
         return (
             <div className="table">
-                <table>
-                    <thead>
-                        <RenderHeaders />
+                <table key={key+"table"} >
+                    <thead key={key+"thead"} >
+                        <tr key={key+"thread-tr"}>
+                            <RenderHeaders />
+                        </tr>
                     </thead>
-                    <tbody>
+                    <tbody key={key+"tbody"} >
                         <RenderRows items={this.state.data.content} onClick={this.handleSelection}/>
                     </tbody>
                 </table>
@@ -136,32 +138,39 @@ class ChurchTable extends React.Component {
 }
 
 function RenderHeaders(props) {
+    const   key = "ChurchTable-th";
+
     return columns.map((column, index)=>{
-        return <th key={column}>{column.toUpperCase()}</th>
+        return <th key={key+column}>{column.toUpperCase()}</th>
     });
 }
 
 function RenderRows(props) {
     const   ctx     = useChurchContext();
     const   items   = props.items;
+    const   key     = "ChurchTable-tr";
 
     return items.map((row, index) => {
         return (
-            <tr className={index === ctx.selection ? "selected" : "not-selected"} onClick={() => props.onClick(ctx, index, row)}>
-                <RenderARow key={index} data={row} />
+            <tr key={key+index} className={index === ctx.selection ? "selected" : "not-selected"} onClick={() => props.onClick(ctx, index, row)}>
+                <RenderARow keyPrefix={key+index} data={row} />
             </tr>
         );
     });
 }
 
 function RenderARow(props) {
-    //alert("RenderRow");
+    const   key = props.keyPrefix + "-td";
+
     return columns.map((column, index) => {
         if (index === 0) {
-            return <td key={index}> ACTION </td>
+            return <td key={key+index}> ACTION </td>
+        }
+        else if (column === "active") {
+            return <td key={key+index}> {props.data[column] ? "Y" : ""} </td>
         }
         else {
-            return <td key={index}>{props.data[column]}</td>
+            return <td key={key+index}>{props.data[column]}</td>
         }
     });
 }

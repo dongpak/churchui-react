@@ -13,7 +13,9 @@ class AppContent extends React.Component {
     render() {
         return (
             <div className="App-content">
-                <AppSelectedContent name={this.context.appContent} />
+                <div className="App-content-body">
+                    <AppSelectedContent name={this.context.appContent} />
+                </div>
             </div>
         );
     }

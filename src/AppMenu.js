@@ -24,7 +24,7 @@ function LoginOrMenu(props) {
     //alert("AppMenu: LoginOrMenu: jwt=" + props.jwt);
 
     if (props.jwt === null) {
-        return <AppLogin/>
+        return <AppLogin />
     }
 
     return <CallerBasedMenu/>
@@ -85,7 +85,7 @@ class CallerBasedMenu extends React.Component {
 
     render() {
         return (
-            <div className="App-menu">
+            <div className="App-menu-container">
                 <MenuItem name="Manage Churches" activate={this.hasRoles("SUPER")} />
                 <MenuItem name="Manage Users" activate={this.hasRoles("SUPER", "ADMIN")} />
                 <MenuItem name="Manage Members" activate={this.hasRoles("SUPER", "ADMIN", "CLERK")} />
@@ -106,7 +106,9 @@ function MenuItem(props) {
     }
     else {
         return (
-            <h3 className="keep-together gray-out"> {props.name} </h3>
+            <button type="button" className="App-menu-button" disabled="disabled">
+                {props.name}
+            </button>
         );
     }
 }
@@ -134,11 +136,9 @@ class ActiveMenu extends React.Component {
 
     render() {
         return (
-            <h3>
-                <a className="keep-together" onClick={(e) => this.handleClick(e, this.props.name)}>
+            <button type="button" className="App-menu-button" onClick={(e) => this.handleClick(e, this.props.name)}>
                     {this.props.name}
-                </a>
-            </h3>
+            </button>
         );
     }
 }

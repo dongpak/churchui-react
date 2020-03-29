@@ -6,7 +6,7 @@ import AppContext from '../AppContext.js';
 import { PaginatorContext, PaginatorContextProvider } from '../paginator/PaginatorContext.js';
 import Paginator from '../paginator/Paginator.js';
 
-import { ChurchContextProvider } from './ChurchContext.js';
+import { ChurchContextProvider, ChurchContext } from './ChurchContext.js';
 import ChurchEditor from './ChurchEditor.js';
 import ChurchTable from './ChurchTable.js';
 
@@ -23,7 +23,11 @@ class ManageChurch extends React.Component {
             <PaginatorContextProvider>
                 <div class="Church-content">
                     <ChurchEditor />
-                    <Paginator />
+                    <ChurchContext.Consumer>{
+                        ctx =>
+                        <Paginator ctx={ctx} />
+                    }
+                    </ChurchContext.Consumer>
                     <PaginatorContext.Consumer>{
                         pagectx =>
                         <ChurchTable appctx={this.context} pagectx={pagectx} />

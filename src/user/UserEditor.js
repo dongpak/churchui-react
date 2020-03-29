@@ -29,16 +29,19 @@ class UserEditor extends React.Component {
         this.churchId   = React.createRef();
         this.clear      = React.createRef();
 
-        this.handleResponse = this.handleResponse.bind(this);
+        this.loadChurch         = this.loadChurch.bind(this);
+        this.loadChurchComplete = this.loadChurchComplete.bind(this);
+        this.handleResponse     = this.handleResponse.bind(this);
 
         this.state = {
-            searchChurch: false
+            searchChurch:   false
         }
 
         //alert("ChurchEditor constructor");
     }
 
     componentDidUpdate () {
+        // alert("UserEditor: componentDidUpdate: ");
         const selected = this.context.selected;
 
         if (selected != null) {
@@ -51,12 +54,41 @@ class UserEditor extends React.Component {
             if (selected.token != null) {
                 this.token.current.value = selected.token;
             }
+
             if (selected.churchId != null) {
                 this.churchId.current.value = selected.churchId;
+
+                // alert("UserEditor: componentDidUpdate: church=" + this.church.current.value);
+                if (this.church.current.value === "") {
+                    this.church.current.value = "... Loading ...";
+                    this.loadChurch(selected.churchId);
+                }
             }
         }
+    }
 
-        alert("UserEditor: componentDidUpdate");
+    loadChurch(id) {
+        axios
+            .get("/api/church/" + id, {
+                headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
+            })
+            .then(this.loadChurchComplete)
+            .catch(function(error) {
+        	    console.log("UserEditor: loadChurch: error=" + error);
+                console.log("UserEditor: loadChurch: error: response=" + JSON.stringify(error.response));
+            })
+            .then(function() {
+            });
+    }
+
+    loadChurchComplete(response) {
+        // alert("UserEditor: loadChurchComplete: " + JSON.stringify(response));
+        if (response.status === 200) {
+            this.church.current.value = response.data.name;
+        }
+        else {
+            console.log("UserEditor: loadChurchComplete: response=" + JSON.stringify(response));
+        }
     }
 
     openSearchChurchModal(event) {
@@ -81,8 +113,6 @@ class UserEditor extends React.Component {
         this.setState({
             searchChurch: false
         });
-
-
     }
 
     handleClear(event) {
@@ -104,8 +134,9 @@ class UserEditor extends React.Component {
                 .delete(url, config)
                 .then(this.handleResponse)
                 .catch(function(error) {
-                	alert("Error: " + error);
-                })
+        	        console.log("UserEditor: handleDelete: error=" + error);
+                    console.log("UserEditor: handleDelete: error: response=" + JSON.stringify(error.response));
+                 })
                 .then(function() {
                 });
         }
@@ -133,25 +164,26 @@ class UserEditor extends React.Component {
             }
         }
 
-        if (this.context.selection == null) {
+        if (this.context.selection === null) {
             axios
         	    .post(url, payload, config)
         		.then(this.handleResponse)
         		.catch(function(error) {
-        			alert("Error: " + error);
+        	        console.log("UserEditor: handleSubmit: error=" + error);
+                    console.log("UserEditor: handleSubmit: error: response=" + JSON.stringify(error.response));
         		})
         		.then(function() {
         		});
         }
         else {
-            payload.id = this.context.selected.id;
-            url = url + "/" + payload.id;
+            url = url + "/" + this.name.current.value;
 
             axios
           	    .put(url, payload, config)
           		.then(this.handleResponse)
                 .catch(function(error) {
-                	alert("Error: " + error);
+                    console.log("UserEditor: handleSubmit: error=" + error);
+                	console.log("UserEditor: handleSubmit: error: response=" + JSON.stringify(error.response));
           		})
            		.then(function() {
           		});
@@ -160,12 +192,12 @@ class UserEditor extends React.Component {
 
 
     handleResponse(response) {
-         if (response.status === 200) {
+        if (response.status === 200) {
              this.context.datasourceUpdated();
              this.clear.current.click();
      	}
      	else {
-     	    alert("Not Success: " + JSON.stringify(response));
+            console.log("UserEditor: handleResponse: response=" + JSON.stringify(response));
      	}
     }
 
@@ -181,36 +213,36 @@ class UserEditor extends React.Component {
 
                     <SearchChurchModal status={this.state.searchChurch} closeHandler={this.closeSearchChurchModal.bind(this)} />
                     <form className="editor-form" onSubmit={this.handleSubmit.bind(this, appctx)}>
-                        <label for="active"> Active </label>
+                        <label htmlFor="active"> Active </label>
                         <input id="active" type="checkbox" name="active" ref={this.active} />
 
-                        <label for="name" className="keep-together"> User Name* </label>
+                        <label htmlFor="name" className="keep-together"> User Name* </label>
                         <input id="name" required="true" type="text" name="name" ref={this.name} />
 
-                        <label for="token" className="keep-together"> User Token* </label>
+                        <label htmlFor="token" className="keep-together"> User Token* </label>
                         <input id="token" required="true" type="password" name="token" ref={this.token} />
 
-                        <label for="roles" className="keep-together"> User Roles* </label>
-                        <select id="roles" multiple="true" required="true" ref={this.roles}>
-                            {UserRoles(appctx.apiCaller)}
+                        <label htmlFor="roles" className="keep-together"> User Roles* </label>
+                        <select id="roles" multiple="multiple" required="true" ref={this.roles}>
+                            {UserRoles(appctx.apiCaller, ctx.selected.roles)}
                         </select>
 
-                        <label for="church" className="keep-together"> User Church* </label>
-                        <input id="church" required="true" type="text" readonly="readonly"
+                        <label htmlFor="church" className="keep-together"> User Church* </label>
+                        <input id="church" required="true" type="text" readOnly="readonly"
                                 onClick={this.openSearchChurchModal.bind(this)} ref={this.church} />
                         <input id="churchId" type="hidden" ref={this.churchId} />
 
-                        <label for="createdby"> Created By </label>
-                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
+                        <label htmlFor="createdby"> Created By </label>
+                        <input id="createdby" readOnly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
 
-                        <label for="createddate"> Created Date </label>
-                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
+                        <label htmlFor="createddate"> Created Date </label>
+                        <input id="createddate" readOnly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
 
-                        <label for="updatedby"> Updated By </label>
-                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
+                        <label htmlFor="updatedby"> Updated By </label>
+                        <input id="updatedby" readOnly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
 
-                        <label for="updateddate"> Updated Date </label>
-                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
+                        <label htmlFor="updateddate"> Updated Date </label>
+                        <input id="updateddate" readOnly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
 
                         <div>
                             <input className="login-button" type="submit" value="Save" />

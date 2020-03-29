@@ -7,7 +7,7 @@ import { PaginatorContext, PaginatorContextProvider } from '../paginator/Paginat
 import Paginator from '../paginator/Paginator.js';
 import { ChurchContextProvider } from '../church/ChurchContext.js';
 
-import { UserContextProvider } from './UserContext.js';
+import { UserContextProvider, UserContext } from './UserContext.js';
 import UserEditor from './UserEditor.js';
 import UserTable from './UserTable.js';
 
@@ -22,9 +22,13 @@ class ManageUser extends React.Component {
             <PaginatorContextProvider>
                 <div class="Church-content">
                     <ChurchContextProvider>
-                        <UserEditor />
+                        <UserEditor appctx={this.context} />
                     </ChurchContextProvider>
-                    <Paginator />
+                    <UserContext.Consumer>{
+                        ctx =>
+                        <Paginator ctx={ctx}/>
+                    }
+                    </UserContext.Consumer>
                     <PaginatorContext.Consumer>{
                         pagectx =>
                         <UserTable appctx={this.context} pagectx={pagectx} />

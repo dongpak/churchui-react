@@ -125,26 +125,26 @@ class ChurchEditor extends React.Component {
                 appctx =>
                 <div className="editor">
                     <form className="editor-form" onSubmit={this.handleSubmit.bind(this, appctx)}>
-                        <label for="active"> Active </label>
+                        <label htmlFor="active"> Active </label>
                         <input id="active" type="checkbox" name="active" ref={this.active} />
 
-                        <label for="id"> Id </label>
-                        <input id="id" readonly="readonly" type="text" name="id" value={ctx.selected.id} />
+                        <label htmlFor="id"> Id </label>
+                        <input id="id" readOnly="readonly" type="text" name="id" value={ctx.selected.id} />
 
-                        <label for="name" className="keep-together"> Church Name* </label>
+                        <label htmlFor="name" className="keep-together"> Church Name* </label>
                         <input id="name" required="true" type="text" name="name" ref={this.name} />
 
-                        <label for="createdby"> Created By </label>
-                        <input id="createdby" readonly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
+                        <label htmlFor="createdby"> Created By </label>
+                        <input id="createdby" readOnly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
 
-                        <label for="createddate"> Created Date </label>
-                        <input id="createddate" readonly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
+                        <label htmlFor="createddate"> Created Date </label>
+                        <input id="createddate" readOnly="readonly" type="text" name="createddate" value={ctx.selected.createdDate} />
 
-                        <label for="updatedby"> Updated By </label>
-                        <input id="updatedby" readonly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
+                        <label htmlFor="updatedby"> Updated By </label>
+                        <input id="updatedby" readOnly="readonly" type="text" name="updatedby" value={ctx.selected.updatedBy} />
 
-                        <label for="updateddate"> Updated Date </label>
-                        <input id="updateddate" readonly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
+                        <label htmlFor="updateddate"> Updated Date </label>
+                        <input id="updateddate" readOnly="readonly" type="text" name="updateddate" value={ctx.selected.updatedDate}/>
 
                         <div>
                             <input className="login-button" type="submit" value="Save" />

@@ -10,7 +10,7 @@ class AppFooter extends React.Component {
 
     render() {
         return (
-            <div class="App-footer">
+            <div className="App-footer">
                 <h2>Footer</h2>
             </div>
         );

@@ -17,9 +17,15 @@ class AppLogin extends React.Component {
         this.handleSubmit   = this.handleSubmit.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
 
-        this.state = {
-            username: "admin",
-            password: "superadmin"
+        console.log("AppLogin: constructor");
+    }
+
+   componentDidMount () {
+         console.log("AppLogin: componentDidMount: easy=" + this.props.easy);
+
+        if (typeof this.props.easy === "undefined") {
+            this.username.current.value = "admin";
+            this.password.current.value = "superadmin";
         }
     }
 
@@ -56,13 +62,13 @@ class AppLogin extends React.Component {
                             <label className="keep-together"> *User Name: </label>
                         </div>
                         <div className="login-item">
-                            <input required="true" type="text" name="username" value={this.state.username} ref={this.username} />
+                            <input required="required" type="text" name="username" ref={this.username} />
                         </div>
                         <div className="login-item">
                             <label> *Password: </label>
                         </div>
                         <div className="login-item">
-                            <input required="true" type="password" name="password" value={this.state.password} ref={this.password} />
+                            <input required="required" type="password" name="password" ref={this.password} />
                         </div>
                         <div className="login-item">
                             <input className="login-button" type="submit" value="Authenticate" />
