@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Screenshots
 
- <img src="https://github.com/dongpak/churchui/blob/master/main.png"/>
+ <img src="https://github.com/dongpak/churchui/blob/master/main.jpg"/>
  
  <img src="https://github.com/dongpak/churchui/blob/master/menu.png"/>
 
