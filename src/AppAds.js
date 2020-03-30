@@ -13,7 +13,7 @@ class AppAds extends React.Component {
     render() {
         return (
             <div className="App-ads">
-              <p>Sample advertisement for whoever using this application, so there is a profit to maintain this application.</p>
+              <p> Space for advertisement.</p>
             </div>
         );
     }

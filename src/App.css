@@ -111,7 +111,7 @@ button.App-menu-button:disabled, button.App-menu-button[disabled] {
 }
 
 .App-footer {
-    padding: 20px;
+    padding: 10px;
     text-align: center;
     background: green;
 }

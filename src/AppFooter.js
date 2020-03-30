@@ -11,7 +11,7 @@ class AppFooter extends React.Component {
     render() {
         return (
             <div className="App-footer">
-                <h2>Footer</h2>
+                <h5>© 2020 churchclerk.com</h5>
             </div>
         );
     }
