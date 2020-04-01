@@ -64,9 +64,6 @@
 
 .App-menu-container {
     width: 100%;
-/*
-  border: 1px solid;
-*/
 }
 
 .App-menu-button {
@@ -82,6 +79,18 @@
     border-radius: 8px;
 }
 
+.App-menu-selected-button {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: green;
+    color: black;
+    padding: 14px 28px;
+    font-size: 16px;
+    text-align: left;
+    margin: 5px;
+    border-radius: 8px;
+}
 
 button.App-menu-button:hover {
     background-color: #ddd;
@@ -95,6 +104,7 @@ button.App-menu-button:disabled, button.App-menu-button[disabled] {
   font-style: italic;
   cursor: default;
 }
+
 
 
 /* Responsive layout - makes the menu block stack on top of content block */

@@ -4,6 +4,8 @@ import './App.css';
 import AppContext from './AppContext.js';
 import ManageChurch from './church/ManageChurch.js';
 import ManageUser from './user/ManageUser.js';
+import ManageMember from './member/ManageMember.js';
+
 
 
 class AppContent extends React.Component {
@@ -29,6 +31,10 @@ function AppSelectedContent(props) {
 
     if (props.name === "Manage Users") {
         return <ManageUser/>
+    }
+
+    if (props.name === "Manage Members") {
+        return <ManageMember/>
     }
 
     if (typeof props.name === null) {

@@ -121,22 +121,43 @@ class ActiveMenu extends React.Component {
         super(props);
 
         this.handleClick = this.handleClick.bind(this);
+
+        this.state = {
+            selected: false
+        };
+    }
+
+    componentDidUpdate () {
+        // alert("ActiveMenu: componentDidUpdate: selected=" + this.state.selected + ", content=" + this.context.appContent);
+
+        if (this.context.appContent !== this.props.name) {
+            if (this.state.selected === true) {
+                this.setState({
+                    selected: false
+                });
+            }
+        }
     }
 
     handleClick(e, item) {
         e.preventDefault();
         if (item === "Change User") {
-            this.context.updateApiCaller(null);
-            this.context.updateUser(null, null);
+            window.location.reload(false);
         }
         else {
             this.context.updateAppContent(item);
+            this.setState({
+                selected: true
+            });
         }
     }
 
     render() {
+        const buttonClass   = this.state.selected ? " App-menu-selected-button" : "App-menu-button";
+
+
         return (
-            <button type="button" className="App-menu-button" onClick={(e) => this.handleClick(e, this.props.name)}>
+            <button type="button" className={buttonClass} onClick={(e) => this.handleClick(e, this.props.name)}>
                     {this.props.name}
             </button>
         );
