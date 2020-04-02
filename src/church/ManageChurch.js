@@ -24,12 +24,12 @@ class ManageChurch extends React.Component {
                 <div class="Church-content">
                     <ChurchEditor />
                     <ChurchContext.Consumer>{
-                        ctx =>
+                    ctx =>
                         <Paginator ctx={ctx} />
                     }
                     </ChurchContext.Consumer>
                     <PaginatorContext.Consumer>{
-                        pagectx =>
+                    pagectx =>
                         <ChurchTable appctx={this.context} pagectx={pagectx} />
                     }
                     </PaginatorContext.Consumer>

@@ -166,7 +166,7 @@ function RenderARow(props) {
         if (index === 0) {
             return <td key={key+index}> ACTION </td>
         }
-        else if (column === "active") {
+        else if ((column === "active") || (column === "regular")) {
             return <td key={key+index}> {props.data[column] ? "Y" : ""} </td>
         }
         else {

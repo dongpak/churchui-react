@@ -1,8 +1,8 @@
 import React from 'react';
-//import logo rom './logo.svg';
+import filterIcon from '../filter.png';
 import '../App.css';
 import useChurchContext, {ChurchContext} from './ChurchContext.js';
-
+import ChurchFilterSort from './ChurchFilterSort.js';
 
 
 const axios     = require('axios').default;
@@ -21,10 +21,11 @@ class ChurchTable extends React.Component {
         this.loadPage           = this.loadPage.bind(this);
         this.handleResponse     = this.handleResponse.bind(this);
         this.handleSelection    = this.handleSelection.bind(this);
+        this.addFilterSort      = this.addFilterSort.bind(this);
 
         this.state = {
             size: 20,
-            filter: {},
+            filterSort: false,
             data: null,
             selection: null,
             selected: {},
@@ -68,17 +69,56 @@ class ChurchTable extends React.Component {
         const page = pagectx === null ? 0 : pagectx.currentPage;
         const size = this.state.size;
 
-        //alert("ChurchTable: loadPage: " + page);
+        const url = this.addFilterSort("/api/church?page=" + page + "&size=" + size);
+
+        alert("ChurchTable: loadPage: url=" + url);
         axios
-            .get("/api/church?page="+page+"&size="+size, {
+            .get(url, {
                 headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
             })
             .then(this.handleResponse)
             .catch(function(error) {
-              	alert("Error: " + error);
+              	alert("Error: " + error );
+              	if (error.response) {
+              	    console.log("ChurchTable: loadPage: error response: " + JSON.stringify(error.response));
+              	}
             })
             .then(function() {
             });
+    }
+
+    addFilterSort(baseurl) {
+        const filterSort = this.context.filterSort;
+
+        let url     = baseurl;
+        let sortBy  = [];
+
+        if ((typeof filterSort.activeLike !== "undefined") && (filterSort.activeLike !== null)) {
+            url = url + "&active=" + filterSort.activeLike;
+        }
+        if ((typeof filterSort.nameLike !== "undefined") && (filterSort.nameLike !== null)) {
+            url = url + "&name=" + encodeURIComponent(filterSort.nameLike);
+        }
+
+        this.addSort(sortBy, filterSort.activeSort, "active");
+        this.addSort(sortBy, filterSort.nameSort, "name");
+
+        if (sortBy.length > 0) {
+            url = url + "&sortBy=" + sortBy.join();
+        }
+
+        return url;
+    }
+
+    addSort(sorts, value, field) {
+        if ((typeof value !== "undefined") && (value !== null)) {
+            if (value ==="ASC") {
+                sorts.push(field);
+            }
+            else {
+                sorts.push("-" + field);
+            }
+        }
     }
 
     handleResponse(response) {
@@ -105,6 +145,24 @@ class ChurchTable extends React.Component {
         });
     }
 
+    handleFilter(ctx) {
+        this.setState({
+            filterSort: true
+        });
+    }
+
+    closeFilterSortModal(churchctx, event) {
+        const filterSort    = churchctx.filterSort;
+
+        if (filterSort != null) {
+
+        }
+
+        this.setState({
+            filterSort: false
+        });
+    }
+
     render() {
         const   key = "ChurchTable-";
 
@@ -122,10 +180,11 @@ class ChurchTable extends React.Component {
         //alert("ChurchTable: rows of table");
         return (
             <div className="table">
+                <ChurchFilterSort status={this.state.filterSort} closeHandler={this.closeFilterSortModal.bind(this)} />
                 <table key={key+"table"} >
                     <thead key={key+"thead"} >
                         <tr key={key+"thread-tr"}>
-                            <RenderHeaders />
+                            <RenderHeaders filterHandler={this.handleFilter.bind(this)}/>
                         </tr>
                     </thead>
                     <tbody key={key+"tbody"} >
@@ -138,10 +197,15 @@ class ChurchTable extends React.Component {
 }
 
 function RenderHeaders(props) {
-    const   key = "ChurchTable-th";
+    const   ctx     = useChurchContext();
+    const   key     = "ChurchTable-th";
 
     return columns.map((column, index)=>{
-        return <th key={key+column}>{column.toUpperCase()}</th>
+        if (column === "*") {
+            return <th key={key+column}> <img src={filterIcon} onClick={() => props.filterHandler(ctx)} height="16" width="16" alt="update filter and sort"/> </th>
+        }
+
+        return <th key={key+column}> {column.toUpperCase()} </th>
     });
 }
 
