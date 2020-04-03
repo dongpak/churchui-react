@@ -1,8 +1,8 @@
 import React from 'react';
-//import logo from './logo.svg';
+import filterIcon from '../filter.png';
 import '../App.css';
 import useUserContext, {UserContext} from './UserContext.js';
-
+import UserFilterSort from './UserFilterSort.js';
 
 
 const axios     = require('axios').default;
@@ -19,14 +19,16 @@ class UserTable extends React.Component {
         super(props);
 
 
-        this.loadPage           = this.loadPage.bind(this);
-        this.handleResponse     = this.handleResponse.bind(this);
-        this.handleSelection    = this.handleSelection.bind(this);
+        this.loadPage               = this.loadPage.bind(this);
+        this.handleResponse         = this.handleResponse.bind(this);
+        this.handleErrorResponse    = this.handleErrorResponse.bind(this);
+        this.handleSelection        = this.handleSelection.bind(this);
+        this.addFilterSort          = this.addFilterSort.bind(this);
+        this.addSort                = this.addSort.bind(this);
 
         this.state = {
-            page: 0,
             size: 20,
-            filter: {},
+            filterSort: false,
             data: null,
             selection: null,
             selected: {},
@@ -71,26 +73,78 @@ class UserTable extends React.Component {
         const page = pagectx === null ? 0 : pagectx.currentPage;
         const size = this.state.size;
 
-        //alert("UserTable: loadPage: " + page);
+        const url = this.addFilterSort("/api/user?page=" + page + "&size=" + size);
+
+        // alert("UserTable: loadPage: url=" + url);
         axios
-            .get("/api/user?page="+page+"&size="+size, {
+            .get(url, {
                 headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
             })
             .then(this.handleResponse)
-            .catch(function(error) {
-              	alert("Error: " + error);
-            })
+            .catch(this.handleErrorResponse)
             .then(function() {
             });
     }
 
+    addFilterSort(baseurl) {
+        const filterSort = this.context.filterSort;
+
+        let url     = baseurl;
+        let sortBy  = [];
+
+        if ((typeof filterSort.activeLike !== "undefined") && (filterSort.activeLike !== null)) {
+            url = url + "&active=" + filterSort.activeLike;
+        }
+        if ((typeof filterSort.nameLike !== "undefined") && (filterSort.nameLike !== null)) {
+            url = url + "&name=" + encodeURIComponent(filterSort.nameLike);
+        }
+        if ((typeof filterSort.rolesLike !== "undefined") && (filterSort.rolesLike !== null)) {
+            url = url + "&roles=" + encodeURIComponent(filterSort.rolesLike);
+        }
+        if ((typeof filterSort.churchId !== "undefined") && (filterSort.churchId !== null)) {
+            url = url + "&churchId=" + encodeURIComponent(filterSort.churchId);
+        }
+
+        this.addSort(sortBy, filterSort.activeSort, "active");
+        this.addSort(sortBy, filterSort.nameSort, "name");
+        this.addSort(sortBy, filterSort.rolesSort, "roles");
+
+        if (sortBy.length > 0) {
+            url = url + "&sortBy=" + sortBy.join();
+        }
+
+        return url;
+    }
+
+    addSort(sorts, value, field) {
+        if ((typeof value !== "undefined") && (value !== null)) {
+            if (value ==="ASC") {
+                sorts.push(field);
+            }
+            else {
+                sorts.push("-" + field);
+            }
+        }
+    }
+
+    handleErrorResponse(error) {
+        this.context.datasourceClear();
+
+        alert("Error: " + error);
+        if (error.response) {
+            console.log("UserTable: loadPage: error response=" + JSON.stringify(error.response));
+        }
+    }
+
+
     handleResponse(response) {
-       // alert("UserTable: handleResponse: " + JSON.stringify(response));
+        // alert("UserTable: handleResponse: " + JSON.stringify(response));
         if (response.status === 200) {
             this.setState({
                 data: response.data,
             });
-            this.context.datasourceClear();        }
+            this.context.datasourceClear();
+        }
         else {
         	alert("Not Success: " + JSON.stringify(response));
         }
@@ -104,6 +158,25 @@ class UserTable extends React.Component {
             selected: row,
         });
     }
+
+    handleFilter(ctx) {
+        this.setState({
+            filterSort: true
+        });
+    }
+
+    closeFilterSortModal(userctx, event) {
+        const filterSort    = userctx.filterSort;
+
+        if (filterSort != null) {
+
+        }
+
+        this.setState({
+            filterSort: false
+        });
+    }
+
 
     render() {
         const   key = "UserTable-";
@@ -121,10 +194,11 @@ class UserTable extends React.Component {
 
         return (
             <div className="table">
+                <UserFilterSort status={this.state.filterSort} closeHandler={this.closeFilterSortModal.bind(this)} />
                 <table>
                     <thead key={key+"thead"} >
                         <tr key={key+"thread-tr"}>
-                            <RenderHeaders />
+                            <RenderHeaders filterHandler={this.handleFilter.bind(this)}/>
                         </tr>
                     </thead>
                     <tbody key={key+"tbody"} >
@@ -137,12 +211,18 @@ class UserTable extends React.Component {
 }
 
 function RenderHeaders(props) {
-    const   key = "UserTable-th";
+    const   ctx     = useUserContext();
+    const   key     = "UserTable-th";
 
     return columns.map((column, index)=>{
-        return <th key={key+column}>{column.toUpperCase()}</th>
+        if (column === "*") {
+            return <th key={key+column}> <img src={filterIcon} onClick={() => props.filterHandler(ctx)} height="16" width="16" alt="update filter and sort"/> </th>
+        }
+
+        return <th key={key+column}> {column.toUpperCase()} </th>
     });
 }
+
 
 function RenderRows(props) {
     const   ctx     = useUserContext();

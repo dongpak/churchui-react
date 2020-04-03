@@ -71,7 +71,7 @@ class ChurchTable extends React.Component {
 
         const url = this.addFilterSort("/api/church?page=" + page + "&size=" + size);
 
-        alert("ChurchTable: loadPage: url=" + url);
+        // alert("ChurchTable: loadPage: url=" + url);
         axios
             .get(url, {
                 headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},

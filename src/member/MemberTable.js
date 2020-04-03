@@ -1,8 +1,8 @@
 import React from 'react';
-//import logo rom './logo.svg';
+import filterIcon from '../filter.png';
 import '../App.css';
 import useMemberContext, {MemberContext} from './MemberContext.js';
-
+import MemberFilterSort from './MemberFilterSort.js';
 
 
 const axios     = require('axios').default;
@@ -18,13 +18,16 @@ class MemberTable extends React.Component {
     constructor(props) {
         super(props);
 
-        this.loadPage           = this.loadPage.bind(this);
-        this.handleResponse     = this.handleResponse.bind(this);
-        this.handleSelection    = this.handleSelection.bind(this);
+        this.loadPage               = this.loadPage.bind(this);
+        this.handleResponse         = this.handleResponse.bind(this);
+        this.handleErrorResponse    = this.handleErrorResponse.bind(this);
+        this.handleSelection        = this.handleSelection.bind(this);
+        this.addFilterSort          = this.addFilterSort.bind(this);
+        this.addSort                = this.addSort.bind(this);
 
         this.state = {
             size: 20,
-            filter: {},
+            filterSort: false,
             data: null,
             selection: null,
             selected: {},
@@ -68,18 +71,82 @@ class MemberTable extends React.Component {
         const page = pagectx === null ? 0 : pagectx.currentPage;
         const size = this.state.size;
 
-        //alert("MemberTable: loadPage: " + page);
+        const url = this.addFilterSort("/api/member?page=" + page + "&size=" + size);
+
+        // alert("MemberTable: loadPage: url=" + url);
         axios
-            .get("/api/member?page="+page+"&size="+size, {
+            .get(url, {
                 headers: {'Authorization': 'Bearer ' + this.props.appctx.jwt},
             })
             .then(this.handleResponse)
-            .catch(function(error) {
-              	alert("Error: " + error);
-            })
+            .catch(this.handleErrorResponse)
             .then(function() {
             });
     }
+
+    addFilterSort(baseurl) {
+        const filterSort = this.context.filterSort;
+
+        let url     = baseurl;
+        let sortBy  = [];
+
+        if ((typeof filterSort.activeLike !== "undefined") && (filterSort.activeLike !== null)) {
+            url = url + "&active=" + filterSort.activeLike;
+        }
+        if ((typeof filterSort.nameLike !== "undefined") && (filterSort.nameLike !== null)) {
+            url = url + "&name=" + encodeURIComponent(filterSort.nameLike);
+        }
+        if ((typeof filterSort.otherNameLike !== "undefined") && (filterSort.otherNameLike !== null)) {
+            url = url + "&otherName=" + encodeURIComponent(filterSort.otherNameLike);
+        }
+        if ((typeof filterSort.startDateLike !== "undefined") && (filterSort.startDateLike !== null)) {
+            url = url + "&startDate=" + encodeURIComponent(filterSort.startDateLike);
+        }
+        if ((typeof filterSort.endDateLike !== "undefined") && (filterSort.endDateLike !== null)) {
+            url = url + "&endDate=" + encodeURIComponent(filterSort.endDateLike);
+        }
+        if ((typeof filterSort.regularLike !== "undefined") && (filterSort.regularLike !== null)) {
+            url = url + "&regular=" + encodeURIComponent(filterSort.regularLike);
+        }
+
+        if ((typeof filterSort.churchId !== "undefined") && (filterSort.churchId !== null)) {
+            url = url + "&churchId=" + encodeURIComponent(filterSort.churchId);
+        }
+
+        this.addSort(sortBy, filterSort.activeSort, "active");
+        this.addSort(sortBy, filterSort.nameSort, "name");
+        this.addSort(sortBy, filterSort.otherNameSort, "otherName");
+        this.addSort(sortBy, filterSort.startDateSort, "startDate");
+        this.addSort(sortBy, filterSort.endDateSort, "endDate");
+        this.addSort(sortBy, filterSort.regularSort, "regular");
+
+        if (sortBy.length > 0) {
+            url = url + "&sortBy=" + sortBy.join();
+        }
+
+        return url;
+    }
+
+    addSort(sorts, value, field) {
+        if ((typeof value !== "undefined") && (value !== null)) {
+            if (value ==="ASC") {
+                sorts.push(field);
+            }
+            else {
+                sorts.push("-" + field);
+            }
+        }
+    }
+
+    handleErrorResponse(error) {
+        this.context.datasourceClear();
+
+        alert("Error: " + error);
+        if (error.response) {
+            console.log("MemberTable: loadPage: error response=" + JSON.stringify(error.response));
+        }
+    }
+
 
     handleResponse(response) {
         //alert("MemberTable: handleResponse: " + JSON.stringify(response));
@@ -105,6 +172,26 @@ class MemberTable extends React.Component {
         });
     }
 
+
+    handleFilter(ctx) {
+        this.setState({
+            filterSort: true
+        });
+    }
+
+    closeFilterSortModal(memberctx, event) {
+        const filterSort    = memberctx.filterSort;
+
+        if (filterSort != null) {
+
+        }
+
+        this.setState({
+            filterSort: false
+        });
+    }
+
+
     render() {
         const   key = "MemberTable-";
 
@@ -122,10 +209,11 @@ class MemberTable extends React.Component {
         //alert("ChurchTable: rows of table");
         return (
             <div className="table">
+                <MemberFilterSort status={this.state.filterSort} closeHandler={this.closeFilterSortModal.bind(this)} />
                 <table key={key+"table"} >
                     <thead key={key+"thead"} >
                         <tr key={key+"thread-tr"}>
-                            <RenderHeaders />
+                            <RenderHeaders filterHandler={this.handleFilter.bind(this)}/>
                         </tr>
                     </thead>
                     <tbody key={key+"tbody"} >
@@ -138,12 +226,18 @@ class MemberTable extends React.Component {
 }
 
 function RenderHeaders(props) {
-    const   key = "MemberTable-th";
+    const   ctx     = useMemberContext();
+    const   key     = "MemberTable-th";
 
     return columns.map((column, index)=>{
-        return <th key={key+column}>{column.toUpperCase()}</th>
+        if (column === "*") {
+            return <th key={key+column}> <img src={filterIcon} onClick={() => props.filterHandler(ctx)} height="16" width="16" alt="update filter and sort"/> </th>
+        }
+
+        return <th key={key+column}> {column.toUpperCase()} </th>
     });
 }
+
 
 function RenderRows(props) {
     const   ctx     = useMemberContext();

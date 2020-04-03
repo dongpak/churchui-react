@@ -9,6 +9,12 @@ export class MemberContextProvider extends React.Component {
     constructor(props) {
         super(props);
 
+        this.updateFilterSort = (filterSort) => {
+            this.setState({
+                filterSort: filterSort
+            });
+        };
+
         this.updateSelection = (selection, selected) => {
             this.setState({
                 selection:  selection,
@@ -36,9 +42,12 @@ export class MemberContextProvider extends React.Component {
         }
 
         this.state = {
+            filterSort:         {},
             refresh:            false,
             selection:          null,
             selected:           {},
+
+            updateFilterSort:   this.updateFilterSort,
             updateSelection:    this.updateSelection,
             removeSelection:    this.removeSelection,
             datasourceUpdated:  this.datasourceUpdated,
