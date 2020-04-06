@@ -19,6 +19,14 @@ Uses [axios](https://github.com/axios/axios) to call REST API supplied by Micros
 
  <img src="https://github.com/dongpak/churchui-react/blob/master/editchurch.png"/> 
  
+ <img src="https://github.com/dongpak/churchui-react/blob/master/churchfilter.png"/> 
+ 
+ <img src="https://github.com/dongpak/churchui-react/blob/master/manageuser.png"/>
+ 
  <img src="https://github.com/dongpak/churchui-react/blob/master/edituser.png"/> 
  
  <img src="https://github.com/dongpak/churchui-react/blob/master/churchselector.png"/>
+ 
+ <img src="https://github.com/dongpak/churchui-react/blob/master/userfilter.png"/> 
+ 
+  <img src="https://github.com/dongpak/churchui-react/blob/master/editmember.png"/> 
