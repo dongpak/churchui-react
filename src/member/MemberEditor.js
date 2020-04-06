@@ -3,7 +3,7 @@ import React from 'react';
 import '../App.css';
 import AppContext from '../AppContext.js';
 import {MemberContext} from './MemberContext.js';
-
+import SearchChurchModal from '../church/SearchChurchModal.js';
 
 
 const axios     = require('axios').default;
@@ -24,9 +24,15 @@ class MemberEditor extends React.Component {
         this.startDate  = React.createRef();
         this.endDate    = React.createRef();
         this.regular    = React.createRef();
+        this.church     = React.createRef();
+        this.churchId   = React.createRef();
         this.clear      = React.createRef();
 
         this.handleResponse = this.handleResponse.bind(this);
+
+        this.state = {
+            searchChurch: false
+        };
 
         // alert("MemberEditor: constructor: " +  JSON.stringify(this.props));
     }
@@ -53,12 +59,46 @@ class MemberEditor extends React.Component {
             if (selected.regular != null) {
                 this.regular.current.checked = selected.regular ? "checked" : "";
             }
+
+            if (selected.churches != null) {
+                if (selected.churches.length > 0) {
+                    const church = selected.churches[0];
+
+                    this.churchId.current.value = church.id;
+                    this.church.current.value = church.name;
+                }
+            }
         }
     }
 
     toDateStr(isoString) {
         let dateObj = new Date(isoString);
         return dateObj.toISOString().split('T')[0];
+    }
+
+    openSearchChurchModal(event) {
+        this.setState({
+            searchChurch: true
+        });
+    }
+
+    closeSearchChurchModal(churchctx, event) {
+        const selection = churchctx.selection;
+        const selected  = churchctx.selected;
+
+        if (selection != null) {
+            this.church.current.value = selected.name;
+            this.churchId.current.value = selected.id;
+
+            if ((typeof this.context.selected.churches != "undefined") && (this.context.selected.churches != null)) {
+                this.context.selected.churches = [];
+                this.context.selected.churches.push(selected);
+            };
+        }
+
+        this.setState({
+            searchChurch: false
+        });
     }
 
     handleClear(event) {
@@ -98,7 +138,11 @@ class MemberEditor extends React.Component {
             "otherName": this.otherName.current.value,
             "startDate": this.startDate.current.value,
             "endDate": this.endDate.current.value,
-            "regular": this.regular.current.checked
+            "regular": this.regular.current.checked,
+            "churches": [{
+                "id": this.churchId.current.value,
+                "name": this.church.current.value
+            }]
         };
         let config = {
             headers: {
@@ -152,6 +196,7 @@ class MemberEditor extends React.Component {
             {
                 appctx =>
                 <div className="editor">
+                    <SearchChurchModal status={this.state.searchChurch} closeHandler={this.closeSearchChurchModal.bind(this)} />
                     <form className="editor-form" onSubmit={this.handleSubmit.bind(this, appctx)}>
                         <label htmlFor="active"> Active </label>
                         <input id="active" type="checkbox" name="active" ref={this.active} />
@@ -162,8 +207,8 @@ class MemberEditor extends React.Component {
                         <label htmlFor="name" className="keep-together"> Member Name* </label>
                         <input id="name" required="true" type="text" name="name" ref={this.name} />
 
-                        <label htmlFor="otherName" className="keep-together"> Other Name* </label>
-                        <input id="otherName" required="true" type="text" name="otherName" ref={this.otherName} />
+                        <label htmlFor="otherName" className="keep-together"> Other Name </label>
+                        <input id="otherName" type="text" name="otherName" ref={this.otherName} />
 
                         <label htmlFor="startDate" className="keep-together"> Start Date* </label>
                         <input id="startDate" required="true" type="date" name="startDate" ref={this.startDate} />
@@ -173,6 +218,11 @@ class MemberEditor extends React.Component {
 
                         <label htmlFor="regular" className="keep-together"> Regular Member* </label>
                         <input id="regular" required="true" type="checkbox" name="regular" ref={this.regular} />
+
+                        <label htmlFor="church" className="keep-together"> Member Church* </label>
+                        <input id="church" required="true" type="text" readOnly="readonly"
+                                onClick={this.openSearchChurchModal.bind(this)} ref={this.church} />
+                        <input id="churchId" type="hidden" ref={this.churchId} />
 
                         <label htmlFor="createdby"> Created By </label>
                         <input id="createdby" readOnly="readonly" type="text" name="createdby" value={ctx.selected.createdBy} />
