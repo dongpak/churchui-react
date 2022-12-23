@@ -5,6 +5,8 @@ API Gateway.  The backend Microservices running in Docker Swarm as services.  Se
 apigateway, userapi, and churchapi.  More Microservices will be added to this archtiecture in support of
 church clerks.
 
+To start, run 'npm start'.  Requires installation of mpm.
+
 This UI written using React framework applies React Context to share key data among components.
 Uses [axios](https://github.com/axios/axios) to call REST API supplied by Microservices.
 
